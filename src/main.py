@@ -62,15 +62,14 @@ t_COMMA = r'\,'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 
+def t_REALCONSTANT(t):
+    r'(\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)'
+    t.value = float(t.value)
+    return t
 
 def t_INTEGERCONSTANT(t):
     r'\d+'
     t.value = int(t.value)
-    return t
-
-def t_REALCONSTANT(t):
-    r'\d+\.\d+'
-    t.value = float(t.value)
     return t
 
 def t_IDENTIFIER(t):
@@ -416,12 +415,22 @@ while True:
     except EOFError:
         print("shit")
         break
+    lexer.input(s)
+    # Tokenize
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break  # No more input
+        print(tok)
+    print("$$$$$$$$$$")
+    print(s)
+    print("#############")
     r = parser.parse(s)
     print("===============")
     for quad in quadruples:
         print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
     print("===============")
-    print(var_symbols)
+    print("variables:",var_symbols)
     # print(r['trueList'], r['falseList'])
     quadruples.clear()
     
