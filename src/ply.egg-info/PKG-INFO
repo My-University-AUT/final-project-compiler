@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: ply
+Version: 2022.10.27
+Summary: "PLY - Sly Lex Yacc"
+Home-page: https://github.com/dabeaz/ply
+Author: David Beazley
+Author-email: "David Beazley" <dave@dabeaz.com>
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+
+"PLY is an implementation of lex and yacc. No longer maintained on PyPI. Latest version on GitHub."
+
