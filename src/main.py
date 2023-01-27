@@ -130,9 +130,11 @@ def nextinstr():
 
 
 class E:
-    def __init__(self, t, f):
-        self.trueList = t
-        self.falseList = f
+    def __init__(self, trueList, falseList, place, type):
+        self['trueList'] = trueList
+        self['falseList'] = falseList
+        self['place'] = place
+        self.type = type
 
 def p_marker(t):
     'marker : '
@@ -195,11 +197,11 @@ def p_type(t):
 
 def p_compoundstatement(t):
     'compoundstatement : BEGIN statementlist END'
-    pass
-    t[0] = Quadruple("begin_block", None, None, None)
-    nextInstruction = nextinstr()
-    backpatch(t[2].next, nextInstruction)
-    t[0].next = t[2].next
+
+    # t[0] = Quadruple("begin_block", None, None, None)
+    # nextInstruction = nextinstr()
+    # backpatch(t[2]['next'], nextInstruction)
+    # t[0] = { 'next' : t[2]['next'] }
 
 
 def p_statementlist(t):
@@ -207,6 +209,11 @@ def p_statementlist(t):
                      | statementlist SEMICOLON statement
     '''
     pass
+    # if len(t) == 2:
+    #     print("here is t[1]", t[1])
+    #     t[0] = {'next': t[1]['next']}
+    # else:
+    #     t[0] = {'next': t[3]['next']}
 
 def p_statement(t):
     '''
@@ -221,7 +228,8 @@ def p_statement(t):
 def p_statement_assign(t):
     'statement : IDENTIFIER ASSIGN expression'
     result = t[1]
-    quadruples.append(Quadruple("=", t[3].place, None, result))
+    print("here is t3", t[3])
+    quadruples.append(Quadruple("=", t[3]['place'], None, result))
 
     t[0] = {'place': result, 'trueList': [], 'falseList':[]}
 
@@ -230,7 +238,7 @@ def p_if_else_statement(t):
     'statement : IF expression THEN marker statement endmarker ELSE marker statement'
     backpatch(t[2]['trueList'], t[4])
     backpatch(t[2]['falseList'], t[8])
-    nextList = t[5].next + t[6].next + t[9].next 
+    nextList = t[5]['next'] + t[6]['next'] + t[9]['next'] 
     t[0] = {'next': nextList}
 
 
@@ -238,7 +246,7 @@ def p_if_statement(t):
     'statement : IF expression THEN marker statement'
     # t[4] is newinstr
     backpatch(t[2]['trueList'], t[4])
-    nextList = t[2].falseList + t[4].next
+    nextList = t[2]['falseList'] + t[4]['next']
     t[0] = {'next': nextList }
 
 
@@ -246,9 +254,9 @@ def p_expression(t):
     '''
     expression : LPAREN expression RPAREN
     '''
-    trueList = t[2].trueList
-    falseList = t[2].falseList
-    result = t[2].place
+    trueList = t[2]['trueList']
+    falseList = t[2]['falseList']
+    result = t[2]['place']
     t[0] = {'place': result, 'type':'expression', 'trueList': trueList, 'falseList': falseList}
 
 
@@ -317,9 +325,9 @@ def p_expression_and(t):
     result = new_temp()
     quadruples.append(Quadruple('&&', t[1]['place'], t[3]['place'], result))
 
-    backpatch(t[1].trueList, nextinstr())
-    trueList = t[4].trueList
-    falseList = t[1].falseList + t[4].falseList
+    backpatch(t[1]['trueList'], nextinstr())
+    trueList = t[4]['trueList']
+    falseList = t[1]['falseList'] + t[4]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
@@ -333,9 +341,9 @@ def p_expression_or(t):
     result = new_temp()
     quadruples.append(Quadruple('||', t[1]['place'], t[3]['place'], result))
 
-    backpatch(t[1].falseList, nextinstr())
-    trueList = t[1].trueList + t[4].trueList
-    falseList = t[4].falseList
+    backpatch(t[1]['falseList'], nextinstr())
+    trueList = t[1]['trueList'] + t[4]['trueList']
+    falseList = t[4]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
@@ -345,9 +353,9 @@ def p_expression_or(t):
 #     expression : expression OR marker expression     
 #     '''
 #     # t[3] is nextinstruction line
-#     backpatch(t[1].falseList, t[3])
-#     trueList = t[1].trueList + t[4].trueList
-#     falseList = t[4].falseList
+#     backpatch(t[1]['falseList'], t[3])
+#     trueList = t[1]['trueList'] + t[4]['trueList']
+#     falseList = t[4]['falseList']
 
 #     t[0] = E(trueList, falseList)
 
@@ -358,8 +366,8 @@ def p_expression_not(t):
     result = new_temp()
     quadruples.append(Quadruple('!', t[2]['place'], None, result))
 
-    trueList = t[2].trueList
-    falseList = t[2].falseList
+    trueList = t[2]['trueList']
+    falseList = t[2]['falseList']
     return {'place':result, 'type': 'expression', 'trueList': falseList, 'falseList': trueList}
 
 def expression_relop(t):
@@ -371,15 +379,18 @@ def expression_relop(t):
                | expression LTEQ expression    
                | expression GTEQ expression         
     '''
-    nextInstruction = nextinstr() 
-    trueList = [nextInstruction]
-    falseList = [nextInstruction+1]
+    # nextInstruction = nextinstr() 
+    # trueList = [nextInstruction]
+    # falseList = [nextInstruction+1]
 
-    quadruples.append(Quadruple(f'if {t[1].place} {t[2]} {t[3].place} GOTO', None, None, None))
-    quadruples.append(Quadruple(f'GOTO', None, None, None))
+    # quadruples.append(Quadruple(f'if {t[1]['place']} {t[2]} {t[3]['place']} GOTO', None, None, None))
+    # quadruples.append(Quadruple(f'GOTO', None, None, None))
 
-    return {'type': 'expression', 'trueList': trueList, 'falseList': falseList}
+    # return {'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
+    result = new_temp()
+    quadruples.append(Quadruple(t[2], t[1]['place'], t[3]['place'], result))
+    t[0] = {'place': result, 'type': 'expression', 'trueList': [], 'falseList': []}
 
 
 def p_expression_minus(t):
@@ -400,11 +411,17 @@ parser = yacc(start="program")
 while True:
     try:
         s = input('calc > ')
+        if not s:
+            s = "program shit var a,b:int; c,d:real begin a:=1.2+2.2 end"
     except EOFError:
+        print("shit")
         break
     r = parser.parse(s)
-    print(quadruples)
+    print("===============")
+    for quad in quadruples:
+        print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
+    print("===============")
     print(var_symbols)
-    print(r.trueList, r.falseList)
+    # print(r['trueList'], r['falseList'])
     quadruples.clear()
     
