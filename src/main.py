@@ -1,21 +1,38 @@
 from ply.lex import lex
 from ply.yacc import yacc
 
+keywords = {
+    'program': 'PROGRAM',
+    'var': 'VAR',
+    'begin': 'BEGIN',
+    'end': 'END',
+    'int': 'INT',
+    'real': 'REAL',
+    'if': 'IF',
+    'then': 'THEN',
+    'else': 'ELSE',
+    'while': 'WHILE',
+    'do': 'DO',
+    'print': 'PRINT',
+    'and': 'AND',
+    'or': 'OR',
+    'mod': 'MOD',
+    'not': 'NOT'
+}
 tokens = (
     # 'real' is commented
-    'PROGRAM', 'VAR', 'INTEGER', 'BEGIN', 'END', 'IF', 'THEN', 'ELSE', 'WHILE', 'PRINT',
+    'PROGRAM', 'VAR', 'INT', "REAL", 'BEGIN', 'END', 'IF', 'THEN', 'ELSE', 'WHILE', 'PRINT',
     'AND', 'OR',
     'MOD', 'NOT', 'ASSIGN', 'PLUS', 'MINUS', 'MULT', 'DIVIDE', 'GT', 'LT', 'EQ', 'NEQ', 'GTEQ', 'LTEQ',
-    'IDENTIFIER', 'SEMICOLON', 'COLON', 'COMMA', 'LPAREN', 'RPAREN', 'DO')
-
+    'IDENTIFIER', 'INTEGERCONSTANT','REALCONSTANT', 'SEMICOLON', 'COLON', 'COMMA', 'LPAREN', 'RPAREN', 'DO')
 # Ignored characters
 t_ignore = ' \t'
 
 # Token matching rules are written as regexs
 t_PROGRAM = r'program'
 t_VAR = r'var'
-t_INTEGER = r'integer'
-# t_REAL = r'real'
+t_INT = r'int'
+t_REAL = r'real'
 t_BEGIN = r'begin'
 t_END = r'end'
 t_IF = r'if'
@@ -39,13 +56,27 @@ t_EQ = r'\='
 t_NEQ = r'[<]{1}[>]{1}'
 t_GTEQ = r'[>]{1}[=]{1}'
 t_LTEQ = r'[<]{1}[=]{1}'
-t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_SEMICOLON = r'\;'
 t_COLON = r'\:'
 t_COMMA = r'\,'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 
+
+def t_INTEGERCONSTANT(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
+
+def t_REALCONSTANT(t):
+    r'\d+\.\d+'
+    t.value = float(t.value)
+    return t
+
+def t_IDENTIFIER(t):
+    r'[a-zA-Z_][a-zA-Z_0-9]*'
+    t.type = keywords.get(t.value, 'IDENTIFIER')  # Check for reserved words
+    return t
 
 # Ignored token with an action associated with it
 def t_ignore_newline(t):
@@ -88,7 +119,7 @@ class Quadruple:
 
 quadruples = []
 symbol_table = {}
-
+var_symbols = {'int': [], 'float': []}
 
 def backpatch(quad_list, label):
     for i in quad_list:
@@ -135,18 +166,32 @@ def p_declarationlist(t):
     declarationlist : identifierlist COLON type
                     | declarationlist SEMICOLON identifierlist COLON type
     '''
+    if len(t) == 4:
+        var_symbols[t[3]]+=t[1]['var_name']
+    else:
+        var_symbols[t[5]]+=t[3]['var_name']
     pass
+
 
 def p_identifierlist(t):
     '''
     identifierlist : IDENTIFIER
-                   | identifierlist COMMA IDENTIFIER 
+                   | identifierlist COMMA IDENTIFIER
     '''
-
+    if len(t) == 2:
+        t[0] = {'var_name': [t[1]]}
+    else:
+        t[0] = {'var_name' : t[1]['var_name']+[t[3]]}
 def p_type(t):
-    # for know we support only int
-    'type : INTEGER'
-    pass
+    '''
+    type : INT
+        | REAL
+    '''
+    if t[1] == 'int':
+        t[0] = 'int'
+    else:
+        t[0] = 'float'
+
 
 def p_compoundstatement(t):
     'compoundstatement : BEGIN statementlist END'
@@ -209,8 +254,9 @@ def p_expression(t):
 
 def p_expression_int(t):
     '''
-    expression : INTEGER
+    expression : INTEGERCONSTANT
                | IDENTIFIER
+               | REALCONSTANT
     '''
     # generate backpatching code
     result = new_temp()
@@ -358,6 +404,7 @@ while True:
         break
     r = parser.parse(s)
     print(quadruples)
+    print(var_symbols)
     print(r.trueList, r.falseList)
     quadruples.clear()
     
