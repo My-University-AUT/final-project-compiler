@@ -206,6 +206,9 @@ def p_compoundstatement(t):
     # nextInstruction = nextinstr()
     # backpatch(t[2]['next'], nextInstruction)
     # t[0] = { 'next' : t[2]['next'] }
+    t[0] = t[2]
+    print('here is t[0]', t[0])
+    # backpatch(t[0]['next'], nextinstr())
 
 
 def p_statementlist(t):
@@ -213,11 +216,12 @@ def p_statementlist(t):
                      | statementlist SEMICOLON statement
     '''
     pass
-    # if len(t) == 2:
-    #     print("here is t[1]", t[1])
-    #     t[0] = {'next': t[1]['next']}
-    # else:
-    #     t[0] = {'next': t[3]['next']}
+    if len(t) == 2:
+        print("here is t[1]", t[1])
+        t[0] = t[1]
+    else:
+        t[1]['next'] = t[3]['next']
+        t[0] = t[1]
 
 def p_statement(t):
     '''
