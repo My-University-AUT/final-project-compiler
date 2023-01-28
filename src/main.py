@@ -104,6 +104,7 @@ precedence = (
     ('right', 'AND'),
     ('right', 'PLUS', 'MINUS'),
     ('right', 'MULT', 'DIVIDE', 'MOD'),
+    ('nonassoc', 'GT', 'LT', 'EQ', 'NEQ', 'GTEQ', 'LTEQ'),
     ('right', 'UNOT'),
     ('right', 'UMINUS'),
 )
@@ -219,7 +220,9 @@ def p_statement(t):
     statement : compoundstatement                           
     '''
     # TODO for know while statement is commented
-            #   | WHILE expression DO statement               
+            #   | WHILE expression DO statement
+    nextStatement = t[1]['next']
+    t[0] = {'next': nextStatement}               
 
 def p_statement_print(t):
     '''
@@ -230,7 +233,10 @@ def p_statement_print(t):
     quadruples.append(Quadruple(None, None, None, result))
 
     # TODO for know while statement is commented
-            #   | WHILE expression DO statement               
+            #   | WHILE expression DO statement     
+    nextInstr = [nextinstr()]
+    t[0] = {'next': nextInstr}
+          
 
 
 def p_statement_assign(t):
@@ -239,7 +245,8 @@ def p_statement_assign(t):
     print("here is t3", t[3])
     quadruples.append(Quadruple("=", t[3]['place'], None, result))
 
-    t[0] = {'place': result, 'trueList': [], 'falseList':[]}
+    nextInstr = [nextinstr()]
+    t[0] = {'place': result, 'trueList': [], 'falseList':[], 'next': nextInstr}
 
 
 def p_if_else_statement(t):
@@ -255,13 +262,15 @@ def p_if_else_statement(t):
 def p_if_statement(t):
     'statement : IF expression THEN marker statement'
     # t[4] is newinstr
-    print('here is expr', t[2])
+    print('here is expr', t[2], t[5])
     backpatch(t[2]['trueList'], t[4])
-    nextList = t[2]['falseList'] + [t[4]]
+    # added manually
+    # backpatch(t[2]['falseList'], t[5]['next'][0])
+    nextList = t[2]['falseList'] + t[5]['next']
+    print("next listt", t[2]['falseList'], t[4])
     t[0] = {'next': nextList }
 
-    print("what the fuck haaaaa?")
-
+    print("what the fuck haaaaa?")    
 
 def p_expression(t):
     '''
@@ -270,7 +279,8 @@ def p_expression(t):
     trueList = t[2]['trueList']
     falseList = t[2]['falseList']
     result = t[2]['place']
-    t[0] = {'place': result, 'type':'expression', 'trueList': trueList, 'falseList': falseList}
+    nextInstr = [nextinstr()]
+    t[0] = {'place': result, 'type':'expression', 'trueList': trueList, 'falseList': falseList, 'next': nextInstr}
 
 
 def p_expression_int(t):
@@ -338,9 +348,10 @@ def p_expression_and(t):
     result = new_temp()
     quadruples.append(Quadruple('&&', t[1]['place'], t[3]['place'], result))
 
+
     backpatch(t[1]['trueList'], nextinstr())
-    trueList = t[4]['trueList']
-    falseList = t[1]['falseList'] + t[4]['falseList']
+    trueList = t[3]['trueList']
+    falseList = t[1]['falseList'] + t[3]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
@@ -417,7 +428,9 @@ while True:
         s = input('calc > ')
         if not s:
             # s = "program shit var a,b:int; c,d:real begin a:=12.2+22; b:=a+c; print(a+b*c); print(a+-b+c); print(a>b); end"
-            s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; end"
+            # s = "program shit var a,b:int; c,d:real begin if a>b and c<10 then a:=1; end"
+            # s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; end"
+            s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; b:=a; end"
             # s = "program shit var a,b:int; c,d:real begin if (a>b) then a=b end"
     except EOFError:
         print("shit")
