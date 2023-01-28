@@ -1,12 +1,20 @@
 
 
 def variable_list_to_c_code(variable_list: dict):
-    int_def = "int "+ ", ".join([variable for variable in variable_list['int']])
-    float_def = "float "+ ", ".join([variable for variable in variable_list['float']])
+    if len(variable_list['int']) != 0:
+        int_def = "int "+ ", ".join([variable for variable in variable_list['int']])
+    else:
+        int_def = ""
+    if len(variable_list['float']) != 0:
+        float_def = "float "+ ", ".join([variable for variable in variable_list['float']])
+    else:
+        float_def = ""
     return int_def + ";\n" + float_def + ";\n"
 
 def temp_variables_to_c_code(temp_count):
-    return "float T_" + ", T_".join([str(i+1) for i in range(temp_count)]) + ";\n"
+    if temp_count > 0:
+        return "float T_" + ", T_".join([str(i+1) for i in range(temp_count)]) + ";\n"
+    return ""
 
 def quad_to_c_code(q):
     if q.op == "+":
@@ -22,7 +30,7 @@ def quad_to_c_code(q):
     if q.op == "=":
         return f"\t{q.result} = {q.left};\n"
     if q.op == "print":
-        return f"\tprintf(\"%f\", (float){q.result});\n"
+        return f"\tprintf(\"%f\\n\", (float){q.result});\n"
     if q.op == ">":
         return f"\t{q.result} = {q.left} > {q.right};\n"
     if q.op == "<":
