@@ -155,7 +155,7 @@ def p_endmarker(t):
 def p_program(t):
     'program : PROGRAM IDENTIFIER declarations compoundstatement'
     pass
-    print('shit', t[1])
+    # print('shit', t[1])
 
 def p_declarations(t):
     '''declarations : VAR declarationlist 
@@ -233,7 +233,7 @@ def p_statement_print(t):
     statement : PRINT LPAREN expression RPAREN              
     '''
     result = f"print({t[3]['place']})"
-    print("here is print result")
+    # print("here is print result")
     quadruples.append(Quadruple("print", None, None, t[3]['place']))
 
     # TODO for know while statement is commented
@@ -246,7 +246,7 @@ def p_statement_print(t):
 def p_statement_assign(t):
     'statement : IDENTIFIER ASSIGN expression'
     result = t[1]
-    print("here is t3", t[3])
+    # print("here is t3", t[3])
     quadruples.append(Quadruple("=", t[3]['place'], None, result))
 
     nextInstr = [nextinstr()]
@@ -436,16 +436,20 @@ parser = yacc(start="program")
 # try:
     # s = input('calc > ')
     # if not s:
-s = "program shit" \
-    " var a,b:int;" \
-    " c,d:real" \
-    " begin" \
-    " c:=1;"\
-    " d:=10;"\
-    " while c<d " \
-    "do c:=c+1;" \
-    "print(c);"\
-    " end"
+def read_file(filename):
+    with open(filename, 'r') as f:
+        return f.read()
+s = read_file("input.txt")
+# s = "program shit" \
+#     " var a,b:int;" \
+#     " c,d:real" \
+#     " begin" \
+#     " c:=1;"\
+#     " d:=10;"\
+#     " while c<d " \
+#     "do c:=c+1;" \
+#     "print(c);"\
+#     " end;"
 # except EOFError:
 #     print("shit")
 #     break
@@ -455,15 +459,15 @@ while True:
     tok = lexer.token()
     if not tok:
         break  # No more input
-    print(tok)
-print("$$$$$$$$$$")
-print(s)
-print("#############")
+    # print(tok)
+# print("$$$$$$$$$$")
+# print(s)
+# print("#############")
 r = parser.parse(s)
-print("===============")
-for quad in quadruples:
-    print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
-print("===============")
-print("variables:",var_symbols)
+# print("===============")
+# for quad in quadruples:
+#     print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
+# print("===============")
+# print("variables:",var_symbols)
 print(compile_to_c_code(quadruples, var_symbols,temp_counter))
 
