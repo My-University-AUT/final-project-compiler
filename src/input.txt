@@ -1,0 +1,13 @@
+program a var a, b, c, n : int begin
+    a := 1;
+    b := 1;
+    n := 0;
+    while n < 10 do begin
+        c := b;
+        b := a + b;
+        a := c;
+        n := n + 1;
+        print(n);
+        print(a)
+    end
+end
