@@ -349,7 +349,7 @@ def p_expression_and(t):
     # there is no need to marker since
     # we can calling nextintr func directly
     result = new_temp()
-    quadruples.append(Quadruple('&&', t[1]['place'], t[3]['place'], result))
+    quadruples.append(Quadruple('and', t[1]['place'], t[3]['place'], result))
 
 
     backpatch(t[1]['trueList'], nextinstr())
@@ -366,11 +366,11 @@ def p_expression_or(t):
     # there is no need to marker since
     # we can calling nextintr func directly
     result = new_temp()
-    quadruples.append(Quadruple('||', t[1]['place'], t[3]['place'], result))
+    quadruples.append(Quadruple('or', t[1]['place'], t[3]['place'], result))
 
     backpatch(t[1]['falseList'], nextinstr())
-    trueList = t[1]['trueList'] + t[4]['trueList']
-    falseList = t[4]['falseList']
+    trueList = t[1]['trueList'] + t[3]['trueList']
+    falseList = t[3]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
@@ -440,7 +440,7 @@ parser = yacc(start="program")
 # try:
     # s = input('calc > ')
     # if not s:
-s = "program shit var a,b:int; c,d:real begin if c<d then a:=1; b:=a; end"
+s = "program shit var a,b:int; c,d:real begin if c<d or a < b then a:=1; b:=a; end"
 # except EOFError:
 #     print("shit")
 #     break
@@ -461,5 +461,4 @@ for quad in quadruples:
 print("===============")
 print("variables:",var_symbols)
 print(compile_to_c_code(quadruples, var_symbols,temp_counter))
-# print(r['trueList'], r['falseList'])
-quadruples.clear()
+
