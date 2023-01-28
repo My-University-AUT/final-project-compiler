@@ -206,6 +206,9 @@ def p_compoundstatement(t):
     # nextInstruction = nextinstr()
     # backpatch(t[2]['next'], nextInstruction)
     # t[0] = { 'next' : t[2]['next'] }
+    t[0] = t[2]
+    print('here is t[0]', t[0])
+    # backpatch(t[0]['next'], nextinstr())
 
 
 def p_statementlist(t):
@@ -213,11 +216,12 @@ def p_statementlist(t):
                      | statementlist SEMICOLON statement
     '''
     pass
-    # if len(t) == 2:
-    #     print("here is t[1]", t[1])
-    #     t[0] = {'next': t[1]['next']}
-    # else:
-    #     t[0] = {'next': t[3]['next']}
+    if len(t) == 2:
+        print("here is t[1]", t[1])
+        t[0] = t[1]
+    else:
+        t[1]['next'] = t[3]['next']
+        t[0] = t[1]
 
 def p_statement(t):
     '''
@@ -227,6 +231,7 @@ def p_statement(t):
             #   | WHILE expression DO statement
     nextStatement = t[1]['next']
     t[0] = {'next': nextStatement}
+    print("whoaaaaaaa")
 
 def p_statement_print(t):
     '''
@@ -436,6 +441,17 @@ parser = yacc(start="program")
 # try:
     # s = input('calc > ')
     # if not s:
+# s = "program shit" \
+#     " var a,b:int;" \
+#     " c,d:real" \
+#     " begin" \
+#     " if c<d" \
+#     " then a:=2" \
+#     " else" \
+#     " a:=1;" \
+#     " b:=3" \
+#     " end"
+
 s = "program shit" \
     " var a,b:int;" \
     " c,d:real" \
@@ -446,9 +462,7 @@ s = "program shit" \
     "do c:=c+1;" \
     "print(c);"\
     " end"
-# except EOFError:
-#     print("shit")
-#     break
+
 lexer.input(s)
 # Tokenize
 while True:
