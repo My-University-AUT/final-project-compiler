@@ -265,9 +265,11 @@ def p_if_statement(t):
     print('here is expr', t[2], t[5])
     backpatch(t[2]['trueList'], t[4])
     # added manually
-    # backpatch(t[2]['falseList'], t[5]['next'][0])
+    nextInstr = nextinstr()
+    backpatch(t[2]['falseList'], nextInstr)
+    
     nextList = t[2]['falseList'] + t[5]['next']
-    print("next listt", t[2]['falseList'], t[4])
+    print("next listt", nextList)
     t[0] = {'next': nextList }
 
     print("what the fuck haaaaa?")    
@@ -430,7 +432,7 @@ while True:
             # s = "program shit var a,b:int; c,d:real begin a:=12.2+22; b:=a+c; print(a+b*c); print(a+-b+c); print(a>b); end"
             # s = "program shit var a,b:int; c,d:real begin if a>b and c<10 then a:=1; end"
             # s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; end"
-            s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; b:=a; end"
+            s = "program shit var a,b:int; c,d:real begin if (c<d) then a:=1; b:=a; end"
             # s = "program shit var a,b:int; c,d:real begin if (a>b) then a=b end"
     except EOFError:
         print("shit")
