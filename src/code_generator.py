@@ -56,4 +56,5 @@ def compile_to_c_code(quads: list, variable_list: dict, temp_count):
         temp_variables_to_c_code(temp_count) +\
         "int main() {\n"+\
         quads_to_c_code(quads)+\
+        f" L_{len(quads)+1}"+"\treturn 0;\n"+\
         "}\n"

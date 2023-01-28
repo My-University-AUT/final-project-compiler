@@ -105,8 +105,9 @@ precedence = (
     ('right', 'AND'),
     ('right', 'PLUS', 'MINUS'),
     ('right', 'MULT', 'DIVIDE', 'MOD'),
-    ('nonassoc', 'GT', 'LT', 'EQ', 'NEQ', 'GTEQ', 'LTEQ'),
     ('right', 'UNOT'),
+    ('nonassoc', 'GT', 'LT', 'EQ', 'NEQ', 'GTEQ', 'LTEQ'),
+
     ('right', 'UMINUS'),
 )
 
@@ -252,28 +253,24 @@ def p_statement_assign(t):
 
 def p_if_else_statement(t):
     'statement : IF expression THEN marker statement endmarker ELSE marker statement'
-    backpatch(t[2]['trueList'], t[4])
-    backpatch(t[2]['falseList'], t[8])
-    nextList = t[5]['next'] + t[6]['next'] + t[9]['next'] 
-    t[0] = {'next': nextList}
-    print("what the fuck haaaaa2?")
+    print("AAAAAAAA")
+    t[0] = f"IF {t[2]} THEN marker {t[5]}; IF NOT {t[2]} THEN marker {t[9]}"
+    # backpatch(t[2]['trueList'], t[4])
+    # backpatch(t[2]['falseList'], t[8])
+    # nextList = t[5]['next'] + t[6]['next'] + t[9]['next']
+    # t[0] = {'next': nextList}
+    # print("what the fuck haaaaa2?")
 
 
 
 def p_if_statement(t):
     'statement : IF expression THEN marker statement'
     # t[4] is newinstr
-    print('here is expr', t[2], t[5])
+    print("VVVVVVVV")
     backpatch(t[2]['trueList'], t[4])
-    # added manually
-    nextInstr = nextinstr()
-    backpatch(t[2]['falseList'], nextInstr)
-
-    nextList = t[2]['falseList'] + t[5]['next']
-    print("next listt", nextList)
-    t[0] = {'next': nextList }
-
-    print("what the fuck haaaaa?")
+    backpatch(t[2]['falseList'], nextinstr())
+    nextList = t[5]['next'] + t[2]['falseList']
+    t[0] = {'next': nextList}
 
 def p_expression(t):
     '''
@@ -343,59 +340,49 @@ def p_expression_mod(t):
 
 def p_expression_and(t):
     '''
-    expression : expression AND expression     
+    expression : expression AND marker expression
     '''
     # t[3] is nextinstruction line
     # there is no need to marker since
     # we can calling nextintr func directly
     result = new_temp()
-    quadruples.append(Quadruple('and', t[1]['place'], t[3]['place'], result))
+    quadruples.append(Quadruple('and', t[1]['place'], t[4]['place'], result))
 
 
-    backpatch(t[1]['trueList'], nextinstr())
-    trueList = t[3]['trueList']
-    falseList = t[1]['falseList'] + t[3]['falseList']
+    backpatch(t[1]['trueList'], t[3])
+    trueList = t[4]['trueList']
+    falseList = t[1]['falseList'] + t[4]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
 def p_expression_or(t):
     '''
-    expression : expression OR expression     
+    expression : expression OR marker expression
     '''
     # t[3] is nextinstruction line
     # there is no need to marker since
     # we can calling nextintr func directly
     result = new_temp()
-    quadruples.append(Quadruple('or', t[1]['place'], t[3]['place'], result))
+    quadruples.append(Quadruple('or', t[1]['place'], t[4]['place'], result))
 
-    backpatch(t[1]['falseList'], nextinstr())
-    trueList = t[1]['trueList'] + t[3]['trueList']
-    falseList = t[3]['falseList']
+    backpatch(t[1]['falseList'], t[3])
+    trueList = t[1]['trueList'] + t[4]['trueList']
+    falseList = t[4]['falseList']
 
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
-
-# def p_expression_or(t):
-#     '''
-#     expression : expression OR marker expression     
-#     '''
-#     # t[3] is nextinstruction line
-#     backpatch(t[1]['falseList'], t[3])
-#     trueList = t[1]['trueList'] + t[4]['trueList']
-#     falseList = t[4]['falseList']
-
-#     t[0] = E(trueList, falseList)
 
 def p_expression_not(t):
     '''
     expression : NOT expression %prec UNOT
     '''
+    print("PPPPPPPPP")
     result = new_temp()
-    quadruples.append(Quadruple('!', t[2]['place'], None, result))
+    quadruples.append(Quadruple('not', t[2]['place'], None, result))
 
     trueList = t[2]['trueList']
     falseList = t[2]['falseList']
-    return {'place':result, 'type': 'expression', 'trueList': falseList, 'falseList': trueList}
+    t[0] = {'place':result, 'type': 'expression', 'trueList': falseList, 'falseList': trueList}
 
 def p_expression_relop(t):
     '''
@@ -440,7 +427,7 @@ parser = yacc(start="program")
 # try:
     # s = input('calc > ')
     # if not s:
-s = "program shit var a,b:int; c,d:real begin if c<d or a < b then a:=1; b:=a; end"
+s = "program shit var a,b:int; c,d:real begin if c<d and a < b then a:=2 ; if  not c<d then a:=1; end"
 # except EOFError:
 #     print("shit")
 #     break
