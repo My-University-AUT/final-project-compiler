@@ -50,9 +50,9 @@ t_PLUS = r'\+'
 t_MINUS = r'\-'
 t_MULT = r'\*'
 t_DIVIDE = r'\/'
-t_GT = r'\>'
-t_LT = r'\<'
-t_EQ = r'\='
+t_GT = r'>'
+t_LT = r'<'
+t_EQ = r'='
 t_NEQ = r'[<]{1}[>]{1}'
 t_GTEQ = r'[>]{1}[=]{1}'
 t_LTEQ = r'[<]{1}[=]{1}'
@@ -122,7 +122,7 @@ var_symbols = {'int': [], 'float': []}
 
 def backpatch(quad_list, label):
     for i in quad_list:
-        quadruples[i].result = label
+        quadruples[i-1].result = label
 
 def nextinstr():
     return len(quadruples) + 1
@@ -255,8 +255,9 @@ def p_if_else_statement(t):
 def p_if_statement(t):
     'statement : IF expression THEN marker statement'
     # t[4] is newinstr
+    print('here is expr', t[2])
     backpatch(t[2]['trueList'], t[4])
-    nextList = t[2]['falseList'] + t[4]['next']
+    nextList = t[2]['falseList'] + [t[4]]
     t[0] = {'next': nextList }
 
     print("what the fuck haaaaa?")
@@ -360,17 +361,6 @@ def p_expression_or(t):
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
 
-# def p_expression_or(t):
-#     '''
-#     expression : expression OR marker expression     
-#     '''
-#     # t[3] is nextinstruction line
-#     backpatch(t[1]['falseList'], t[3])
-#     trueList = t[1]['trueList'] + t[4]['trueList']
-#     falseList = t[4]['falseList']
-
-#     t[0] = E(trueList, falseList)
-
 def p_expression_not(t):
     '''
     expression : NOT expression %prec UNOT
@@ -382,7 +372,7 @@ def p_expression_not(t):
     falseList = t[2]['falseList']
     return {'place':result, 'type': 'expression', 'trueList': falseList, 'falseList': trueList}
 
-def expression_relop(t):
+def p_expression_relop(t):
     '''
     expression : expression LT expression      
                | expression EQ expression      
@@ -391,18 +381,20 @@ def expression_relop(t):
                | expression LTEQ expression    
                | expression GTEQ expression         
     '''
-    # nextInstruction = nextinstr() 
-    # trueList = [nextInstruction]
-    # falseList = [nextInstruction+1]
 
-    # quadruples.append(Quadruple(f'if {t[1]['place']} {t[2]} {t[3]['place']} GOTO', None, None, None))
-    # quadruples.append(Quadruple(f'GOTO', None, None, None))
+    # result = new_temp()
+    # quadruples.append(Quadruple(t[2], t[1]['place'], t[3]['place'], result))
+    # t[0] = {'place': result, 'type': 'expression', 'trueList': [], 'falseList': []}
 
-    # return {'type': 'expression', 'trueList': trueList, 'falseList': falseList}
+    nextInstruction = nextinstr() 
+    trueList = [nextInstruction]
+    falseList = [nextInstruction+1]
 
-    result = new_temp()
-    quadruples.append(Quadruple(t[2], t[1]['place'], t[3]['place'], result))
-    t[0] = {'place': result, 'type': 'expression', 'trueList': [], 'falseList': []}
+    quadruples.append(Quadruple(f'if {t[1]["place"]} {t[2]} {t[3]["place"]} GOTO', None, None, None))
+    quadruples.append(Quadruple(f'GOTO', None, None, None))
+
+    t[0] = {'place':f'{t[1]["place"]} {t[2]} {t[3]["place"]}', 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
+
 
 
 def p_expression_minus(t):
@@ -424,7 +416,8 @@ while True:
     try:
         s = input('calc > ')
         if not s:
-            s = "program shit var a,b:int; c,d:real begin a:=12.2+22 ; b:=a+c ; print ( a+b ) end"
+            # s = "program shit var a,b:int; c,d:real begin a:=12.2+22; b:=a+c; print(a+b*c); print(a+-b+c); print(a>b); end"
+            s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; end"
             # s = "program shit var a,b:int; c,d:real begin if (a>b) then a=b end"
     except EOFError:
         print("shit")
