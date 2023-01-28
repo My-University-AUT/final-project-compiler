@@ -145,8 +145,10 @@ def p_marker(t):
 def p_endmarker(t):
     'endmarker : '
     nextList = [nextinstr()]
-    t[0] = {'next': nextList}
-    quadruples.append(Quadruple('GOTO', None, None, None))
+
+    q = Quadruple('GOTO', None, None, None)
+    quadruples.append(q)
+    t[0] = {'next': nextList,"inst":q}
     
 
 
@@ -254,12 +256,13 @@ def p_statement_assign(t):
 def p_if_else_statement(t):
     'statement : IF expression THEN marker statement endmarker ELSE marker statement'
     print("AAAAAAAA")
-    t[0] = f"IF {t[2]} THEN marker {t[5]}; IF NOT {t[2]} THEN marker {t[9]}"
-    # backpatch(t[2]['trueList'], t[4])
-    # backpatch(t[2]['falseList'], t[8])
-    # nextList = t[5]['next'] + t[6]['next'] + t[9]['next']
-    # t[0] = {'next': nextList}
-    # print("what the fuck haaaaa2?")
+    # t[0] = f"IF {t[2]} THEN marker {t[5]}; IF NOT {t[2]} THEN marker {t[9]}"
+    backpatch(t[2]['trueList'], t[4])
+    backpatch(t[2]['falseList'], t[8])
+    t[6]['inst'].result = nextinstr()
+    nextList = t[5]['next'] + t[6]['next'] + t[9]['next']
+    t[0] = {'next': nextList}
+    print("what the fuck haaaaa2?")
 
 
 
@@ -427,7 +430,15 @@ parser = yacc(start="program")
 # try:
     # s = input('calc > ')
     # if not s:
-s = "program shit var a,b:int; c,d:real begin if c<d and a < b then a:=2 ; if  not c<d then a:=1; end"
+s = "program shit" \
+    " var a,b:int;" \
+    " c,d:real" \
+    " begin" \
+    " if c<d " \
+    "then a:=2" \
+    " else " \
+    "a:=1;" \
+    " end"
 # except EOFError:
 #     print("shit")
 #     break
