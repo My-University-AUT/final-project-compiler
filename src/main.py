@@ -253,6 +253,12 @@ def p_statement_assign(t):
     t[0] = {'place': result, 'trueList': [], 'falseList':[], 'next': nextInstr}
 
 
+def p_while_statement(t):
+    'statement : WHILE marker expression DO marker statement'
+    backpatch(t[3]["falseList"],nextinstr()+1)
+    backpatch(t[3]["trueList"], t[5])
+    t[0] = {'next':t[3]['falseList']}
+    quadruples.append(Quadruple("GOTO",None,None,t[2]))
 def p_if_else_statement(t):
     'statement : IF expression THEN marker statement endmarker ELSE marker statement'
     print("AAAAAAAA")
@@ -434,10 +440,11 @@ s = "program shit" \
     " var a,b:int;" \
     " c,d:real" \
     " begin" \
-    " if c<d " \
-    "then a:=2" \
-    " else " \
-    "a:=1;" \
+    " c:=1;"\
+    " d:=10;"\
+    " while c<d " \
+    "do c:=c+1;" \
+    "print(c);"\
     " end"
 # except EOFError:
 #     print("shit")

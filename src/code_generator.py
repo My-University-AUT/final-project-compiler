@@ -22,7 +22,7 @@ def quad_to_c_code(q):
     if q.op == "=":
         return f"\t{q.result} = {q.left};\n"
     if q.op == "print":
-        return f"\tprintf(\"%f, (float){q.result});\n"
+        return f"\tprintf(\"%f\", (float){q.result});\n"
     if q.op == ">":
         return f"\t{q.result} = {q.left} > {q.right};\n"
     if q.op == "<":
@@ -56,5 +56,5 @@ def compile_to_c_code(quads: list, variable_list: dict, temp_count):
         temp_variables_to_c_code(temp_count) +\
         "int main() {\n"+\
         quads_to_c_code(quads)+\
-        f" L_{len(quads)+1}"+"\treturn 0;\n"+\
+        f" L_{len(quads)+1}:"+"\treturn 0;\n"+\
         "}\n"
