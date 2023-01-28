@@ -1,5 +1,6 @@
 from ply.lex import lex
 from ply.yacc import yacc
+from code_generator import compile_to_c_code
 
 keywords = {
     'program': 'PROGRAM',
@@ -63,7 +64,7 @@ t_LPAREN = r'\('
 t_RPAREN = r'\)'
 
 def t_REALCONSTANT(t):
-    r'(\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)'
+    r'\d+\.\d+'
     t.value = float(t.value)
     return t
 
@@ -222,7 +223,7 @@ def p_statement(t):
     # TODO for know while statement is commented
             #   | WHILE expression DO statement
     nextStatement = t[1]['next']
-    t[0] = {'next': nextStatement}               
+    t[0] = {'next': nextStatement}
 
 def p_statement_print(t):
     '''
@@ -230,13 +231,13 @@ def p_statement_print(t):
     '''
     result = f"print({t[3]['place']})"
     print("here is print result")
-    quadruples.append(Quadruple(None, None, None, result))
+    quadruples.append(Quadruple("print", None, None, t[3]['place']))
 
     # TODO for know while statement is commented
-            #   | WHILE expression DO statement     
+            #   | WHILE expression DO statement
     nextInstr = [nextinstr()]
     t[0] = {'next': nextInstr}
-          
+
 
 
 def p_statement_assign(t):
@@ -267,12 +268,12 @@ def p_if_statement(t):
     # added manually
     nextInstr = nextinstr()
     backpatch(t[2]['falseList'], nextInstr)
-    
+
     nextList = t[2]['falseList'] + t[5]['next']
     print("next listt", nextList)
     t[0] = {'next': nextList }
 
-    print("what the fuck haaaaa?")    
+    print("what the fuck haaaaa?")
 
 def p_expression(t):
     '''
@@ -374,6 +375,17 @@ def p_expression_or(t):
     t[0] = {'place': result, 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
 
 
+# def p_expression_or(t):
+#     '''
+#     expression : expression OR marker expression     
+#     '''
+#     # t[3] is nextinstruction line
+#     backpatch(t[1]['falseList'], t[3])
+#     trueList = t[1]['trueList'] + t[4]['trueList']
+#     falseList = t[4]['falseList']
+
+#     t[0] = E(trueList, falseList)
+
 def p_expression_not(t):
     '''
     expression : NOT expression %prec UNOT
@@ -399,15 +411,14 @@ def p_expression_relop(t):
     # quadruples.append(Quadruple(t[2], t[1]['place'], t[3]['place'], result))
     # t[0] = {'place': result, 'type': 'expression', 'trueList': [], 'falseList': []}
 
-    nextInstruction = nextinstr() 
+    nextInstruction = nextinstr()
     trueList = [nextInstruction]
     falseList = [nextInstruction+1]
 
-    quadruples.append(Quadruple(f'if {t[1]["place"]} {t[2]} {t[3]["place"]} GOTO', None, None, None))
+    quadruples.append(Quadruple(f'if GOTO', f'{t[1]["place"]} {t[2]} {t[3]["place"]}', None, None))
     quadruples.append(Quadruple(f'GOTO', None, None, None))
 
     t[0] = {'place':f'{t[1]["place"]} {t[2]} {t[3]["place"]}', 'type': 'expression', 'trueList': trueList, 'falseList': falseList}
-
 
 
 def p_expression_minus(t):
@@ -425,34 +436,30 @@ parser = yacc(start="program")
 
 # Parse an expression
 
+
+# try:
+    # s = input('calc > ')
+    # if not s:
+s = "program shit var a,b:int; c,d:real begin if c<d then a:=1; b:=a; end"
+# except EOFError:
+#     print("shit")
+#     break
+lexer.input(s)
+# Tokenize
 while True:
-    try:
-        s = input('calc > ')
-        if not s:
-            # s = "program shit var a,b:int; c,d:real begin a:=12.2+22; b:=a+c; print(a+b*c); print(a+-b+c); print(a>b); end"
-            # s = "program shit var a,b:int; c,d:real begin if a>b and c<10 then a:=1; end"
-            # s = "program shit var a,b:int; c,d:real begin if a>b then a:=1; end"
-            s = "program shit var a,b:int; c,d:real begin if (c<d) then a:=1; b:=a; end"
-            # s = "program shit var a,b:int; c,d:real begin if (a>b) then a=b end"
-    except EOFError:
-        print("shit")
-        break
-    lexer.input(s)
-    # Tokenize
-    while True:
-        tok = lexer.token()
-        if not tok:
-            break  # No more input
-        print(tok)
-    print("$$$$$$$$$$")
-    print(s)
-    print("#############")
-    r = parser.parse(s)
-    print("===============")
-    for quad in quadruples:
-        print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
-    print("===============")
-    print("variables:",var_symbols)
-    # print(r['trueList'], r['falseList'])
-    quadruples.clear()
-    
+    tok = lexer.token()
+    if not tok:
+        break  # No more input
+    print(tok)
+print("$$$$$$$$$$")
+print(s)
+print("#############")
+r = parser.parse(s)
+print("===============")
+for quad in quadruples:
+    print(f'{quad.result} {quad.op} {quad.left} {quad.right}')
+print("===============")
+print("variables:",var_symbols)
+print(compile_to_c_code(quadruples, var_symbols,temp_counter))
+# print(r['trueList'], r['falseList'])
+quadruples.clear()
