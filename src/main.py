@@ -217,12 +217,21 @@ def p_statementlist(t):
 def p_statement(t):
     '''
     statement : compoundstatement                           
-              | PRINT LPAREN expression RPAREN              
     '''
     # TODO for know while statement is commented
             #   | WHILE expression DO statement               
-     
-    pass
+
+def p_statement_print(t):
+    '''
+    statement : PRINT LPAREN expression RPAREN              
+    '''
+    result = f"print({t[3]['place']})"
+    print("here is print result")
+    quadruples.append(Quadruple(None, None, None, result))
+
+    # TODO for know while statement is commented
+            #   | WHILE expression DO statement               
+
 
 def p_statement_assign(t):
     'statement : IDENTIFIER ASSIGN expression'
@@ -239,6 +248,8 @@ def p_if_else_statement(t):
     backpatch(t[2]['falseList'], t[8])
     nextList = t[5]['next'] + t[6]['next'] + t[9]['next'] 
     t[0] = {'next': nextList}
+    print("what the fuck haaaaa2?")
+
 
 
 def p_if_statement(t):
@@ -247,6 +258,8 @@ def p_if_statement(t):
     backpatch(t[2]['trueList'], t[4])
     nextList = t[2]['falseList'] + t[4]['next']
     t[0] = {'next': nextList }
+
+    print("what the fuck haaaaa?")
 
 
 def p_expression(t):
@@ -411,7 +424,8 @@ while True:
     try:
         s = input('calc > ')
         if not s:
-            s = "program shit var a,b:int; c,d:real begin a:=1.2+2.2 end"
+            s = "program shit var a,b:int; c,d:real begin a:=12.2+22 ; b:=a+c ; print ( a+b ) end"
+            # s = "program shit var a,b:int; c,d:real begin if (a>b) then a=b end"
     except EOFError:
         print("shit")
         break
