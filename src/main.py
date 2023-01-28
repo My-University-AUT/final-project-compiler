@@ -207,7 +207,7 @@ def p_compoundstatement(t):
     # backpatch(t[2]['next'], nextInstruction)
     # t[0] = { 'next' : t[2]['next'] }
     t[0] = t[2]
-    print('here is t[0]', t[0])
+    # print('here is t[0]', t[0])
     # backpatch(t[0]['next'], nextinstr())
 
 
@@ -217,7 +217,7 @@ def p_statementlist(t):
     '''
     pass
     if len(t) == 2:
-        print("here is t[1]", t[1])
+        # print("here is t[1]", t[1])
         t[0] = t[1]
     else:
         t[1]['next'] = t[3]['next']
@@ -272,7 +272,6 @@ def p_if_else_statement(t):
     t[6]['inst'].result = nextinstr()
     nextList = t[5]['next'] + t[6]['next'] + t[9]['next']
     t[0] = {'next': nextList}
-    print("what the fuck haaaaa2?")
 
 
 
